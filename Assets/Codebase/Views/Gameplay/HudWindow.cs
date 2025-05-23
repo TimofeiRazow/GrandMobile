@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Codebase.UI.Gameplay
+namespace Codebase.Views.Gameplay
 {
     public class HudWindow : MonoBehaviour
     {

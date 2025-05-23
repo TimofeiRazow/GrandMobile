@@ -1,4 +1,4 @@
-namespace Codebase.Gameplay.Models
+namespace Codebase.Domain
 {
     public class Game
     {

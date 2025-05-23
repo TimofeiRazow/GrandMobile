@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Codebase.Gameplay.Views
+namespace Codebase.Views.Gameplay
 {
     public class CharacterView : MonoBehaviour
     {
