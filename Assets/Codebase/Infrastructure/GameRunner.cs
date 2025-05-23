@@ -1,19 +1,22 @@
+using Codebase.Infrastructure.Services;
 using UnityEngine;
+using Zenject;
 
 namespace Codebase.Infrastructure
 {
     public class GameRunner : MonoBehaviour
     {
-        private Game _game;
-        
-        private void Start()
+        private SceneService _sceneService;
+
+        [Inject]
+        private void Construct(SceneService sceneService)
         {
-            _game.Initialize();
+            _sceneService = sceneService;
         }
 
-        private void Update()
+        private void Start()
         {
-            _game.Update(Time.deltaTime);
+            _sceneService.ToMainMenu();
         }
     }
 }
