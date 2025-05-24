@@ -14,8 +14,11 @@ namespace Codebase.Controllers.Fsm
         protected FsmBase(List<IState> states)
         {
             _states = states ?? throw new ArgumentNullException(nameof(states));
+        }
 
-            foreach (var state in states)
+        public void Initialize()
+        {
+            foreach (var state in _states)
                 state.Initialize(this);
         }
 
@@ -46,5 +49,17 @@ namespace Codebase.Controllers.Fsm
 
         public void Reset() =>
             Switch(_states.First());
+
+        // Метод для получения состояния по типу
+        public T GetState<T>() where T : class, IState
+        {
+            return _states.OfType<T>().FirstOrDefault();
+        }
+
+        // Метод для получения текущего состояния
+        public IState GetCurrentState() => _currentState;
+
+        // Метод для получения всех состояний
+        public IReadOnlyList<IState> GetAllStates() => _states.AsReadOnly();
     }
 }

@@ -53,5 +53,10 @@ namespace Codebase.Controllers.Input
         {
             return _inputActions.Player.Crouch.WasPressedThisFrame();
         }
+
+        public void Disable()
+        {
+            _inputActions?.Disable();
+        }
     }
 }

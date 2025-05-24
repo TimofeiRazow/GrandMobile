@@ -45,7 +45,12 @@ namespace Codebase.Controllers.Fsm.States
         {
             HandleMouseLook(deltaTime);
             HandleMovement(deltaTime);
-            HandleGravity(deltaTime);
+            
+            // Гравитация только для CharacterController
+            if (_characterView.CharacterController != null && _characterView.CharacterController.enabled)
+            {
+                HandleGravity(deltaTime);
+            }
 
             CheckStateTransitions();
         }
@@ -71,6 +76,38 @@ namespace Codebase.Controllers.Fsm.States
                 return;
             }
 
+            // Для NavMeshAgent движение уже обрабатывается в AiInputService
+            if (_characterView.NavMeshAgent != null && _characterView.NavMeshAgent.enabled)
+            {
+                HandleNavMeshMovement(inputVector);
+            }
+            else if (_characterView.CharacterController != null && _characterView.CharacterController.enabled)
+            {
+                HandleCharacterControllerMovement(inputVector, deltaTime);
+            }
+
+            // Обновляем аниматор независимо от типа движения
+            UpdateAnimator(inputVector.magnitude, _characterView.InputService.IsSprintPressed());
+        }
+
+        private void HandleNavMeshMovement(Vector2 inputVector)
+        {
+            // Для NavMeshAgent просто обновляем аниматор
+            // Само движение обрабатывается в AiInputService
+            bool isSprinting = _characterView.InputService.IsSprintPressed();
+            
+            if (isSprinting && _characterView.NavMeshAgent != null)
+            {
+                _characterView.NavMeshAgent.speed = 5.25f; // 1.5x базовой скорости
+            }
+            else if (_characterView.NavMeshAgent != null)
+            {
+                _characterView.NavMeshAgent.speed = 3.5f; // Базовая скорость
+            }
+        }
+
+        private void HandleCharacterControllerMovement(Vector2 inputVector, float deltaTime)
+        {
             Vector3 forward = _characterView.Transform.forward;
             Vector3 right = _characterView.Transform.right;
 
@@ -79,16 +116,13 @@ namespace Codebase.Controllers.Fsm.States
             float currentSpeed = _moveSpeed;
             if (_characterView.InputService.IsSprintPressed())
             {
-                currentSpeed *= 1.5f; // Увеличиваем скорость в 1.5 раза при беге
+                currentSpeed *= 1.5f;
             }
 
             Vector3 moveVector = movement * (currentSpeed * deltaTime);
-
             moveVector.y = _velocity.y * deltaTime;
 
             _characterView.CharacterController.Move(moveVector);
-
-            UpdateAnimator(inputVector.magnitude, _characterView.InputService.IsSprintPressed());
         }
 
         private void HandleGravity(float deltaTime)
@@ -110,10 +144,14 @@ namespace Codebase.Controllers.Fsm.States
         {
             if (_characterView.Animator != null)
             {
-                _characterView.Animator.SetFloat(Speed, movementMagnitude);
+                // Для NavMeshAgent используем фактическую скорость движения
+                float actualSpeed = _characterView.GetMovementSpeed();
+                float normalizedSpeed = actualSpeed / 5f; // Нормализуем к максимальной скорости
+                
+                _characterView.Animator.SetFloat(Speed, normalizedSpeed);
                 _characterView.Animator.SetBool(IsRunning, isSprinting);
-                _characterView.Animator.SetBool(IsMoving, movementMagnitude > 0.1f);
-                _characterView.Animator.SetBool(IsGrounded, _characterView.CharacterController.isGrounded);
+                _characterView.Animator.SetBool(IsMoving, movementMagnitude > 0.1f || actualSpeed > 0.1f);
+                _characterView.Animator.SetBool(IsGrounded, _characterView.IsGrounded());
             }
         }
 

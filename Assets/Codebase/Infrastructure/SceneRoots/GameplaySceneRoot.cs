@@ -1,5 +1,4 @@
-﻿using System;
-using Codebase.Controllers;
+﻿using Codebase.Controllers;
 using Codebase.Domain.Gameplay;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -23,6 +22,7 @@ namespace Codebase.Infrastructure.SceneRoots
 
         private void Start()
         {
+            Debug.Log("[GameplaySceneRoot] Starting gameplay scene...");
             _coreLoop.Start(_gameModeConfig, _spawnPoints, _camera);
         }
 
@@ -33,6 +33,7 @@ namespace Codebase.Infrastructure.SceneRoots
 
         private void OnDestroy()
         {
+            Debug.Log("[GameplaySceneRoot] Destroying gameplay scene...");
             _coreLoop.Dispose();
         }
     }

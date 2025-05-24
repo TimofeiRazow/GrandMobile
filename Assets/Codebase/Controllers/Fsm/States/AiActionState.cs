@@ -1,14 +1,13 @@
-﻿using Codebase.Domain.Gameplay;
-using Codebase.Infrastructure.Services;
+using Codebase.Controllers.Input;
+using Codebase.Domain.Gameplay;
 using Codebase.Views.Gameplay;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 using UnityEngine;
-using Zenject;
 
 namespace Codebase.Controllers.Fsm.States
 {
-    public class ActionState : IState
+    public class AiActionState : IState
     {
         private static readonly int Attack = Animator.StringToHash("Attack");
         private static readonly int IsAttacking = Animator.StringToHash("IsAttacking");
@@ -17,16 +16,13 @@ namespace Codebase.Controllers.Fsm.States
         private static readonly int IsGrounded = Animator.StringToHash("IsGrounded");
 
         private readonly CharacterView _characterView;
-        private readonly float _gravity = -9.81f;
 
         private IStateSwitcher _stateSwitcher;
-        private FsmBase _fsm;
-        private Vector3 _velocity;
+        private AiInputService _aiInputService;
         private ActionObject _currentActionObject;
         private CancellationTokenSource _actionCancellationToken;
-        private ActionObjectProvider _actionObjectProvider;
 
-        public ActionState(CharacterView characterView)
+        public AiActionState(CharacterView characterView)
         {
             _characterView = characterView;
         }
@@ -34,15 +30,15 @@ namespace Codebase.Controllers.Fsm.States
         public void Initialize(IStateSwitcher stateSwitcher)
         {
             _stateSwitcher = stateSwitcher;
-            _fsm = stateSwitcher as FsmBase;
-            
-            // Получаем ActionObjectProvider через статический доступ
-            _actionObjectProvider = ProjectContext.Instance.Container.Resolve<ActionObjectProvider>();
+            _aiInputService = _characterView.InputService as AiInputService;
         }
 
         public void Enter()
         {
-            Debug.Log($"[ActionState] Entering for {_characterView.Character.Role}");
+            Debug.Log($"[AiActionState] Entering for {_characterView.Character.Role}");
+
+            _aiInputService?.ResetInputs();
+            _aiInputService?.SetAttackPressed(true);
 
             if (_characterView.Animator != null)
             {
@@ -50,16 +46,37 @@ namespace Codebase.Controllers.Fsm.States
                 _characterView.Animator.SetBool(IsAttacking, true);
             }
 
-            // Ищем ближайший объект для взаимодействия
-            FindAndStartAction();
+            // Получаем текущую цель
+            if (_stateSwitcher is FsmBase fsm)
+            {
+                var moveState = fsm.GetState<AiMoveState>();
+                if (moveState != null)
+                {
+                    _currentActionObject = moveState.GetCurrentTarget();
+                }
+                
+                // Если цель не найдена в MoveState, пробуем IdleState
+                if (_currentActionObject == null)
+                {
+                    var idleState = fsm.GetState<AiIdleState>();
+                    if (idleState != null)
+                    {
+                        _currentActionObject = idleState.GetCurrentTarget();
+                    }
+                }
+            }
+
+            StartAction();
         }
 
         public void Exit()
         {
-            Debug.Log($"[ActionState] Exiting for {_characterView.Character.Role}");
+            Debug.Log($"[AiActionState] Exiting for {_characterView.Character.Role}");
 
             if (_characterView.Animator != null)
                 _characterView.Animator.SetBool(IsAttacking, false);
+
+            _aiInputService?.SetAttackPressed(false);
 
             // Прерываем текущее действие если оно выполняется
             InterruptCurrentAction();
@@ -67,63 +84,31 @@ namespace Codebase.Controllers.Fsm.States
 
         public void Update(float deltaTime)
         {
-            HandleGravity(deltaTime);
-
+            // Обновляем аниматор
             if (_characterView.Animator != null)
             {
                 _characterView.Animator.SetFloat(Speed, 0f);
                 _characterView.Animator.SetBool(IsMoving, false);
+                _characterView.Animator.SetBool(IsGrounded, _characterView.IsGrounded());
             }
         }
 
-        private void HandleGravity(float deltaTime)
+        private void StartAction()
         {
-            if (_characterView.CharacterController.enabled == false)
-                return;
-
-            if (_characterView.CharacterController.isGrounded)
-            {
-                _velocity.y = -2f;
-            }
-            else
-            {
-                _velocity.y += _gravity * deltaTime;
-            }
-
-            if (!_characterView.CharacterController.isGrounded || _velocity.y < 0)
-            {
-                Vector3 moveVector = new Vector3(0, _velocity.y * deltaTime, 0);
-                _characterView.CharacterController.Move(moveVector);
-            }
-
-            if (_characterView.Animator != null)
-            {
-                _characterView.Animator.SetBool(IsGrounded, _characterView.CharacterController.isGrounded);
-            }
-        }
-
-        private void FindAndStartAction()
-        {
-            // Сначала ищем ближайший ActionObject через провайдер
-            _currentActionObject = _actionObjectProvider?.FindNearestActionObject(
-                _characterView.Transform.position,
-                _characterView.Character.Role
-            );
-
             if (_currentActionObject != null && _currentActionObject.CanInteract(_characterView))
             {
                 StartActionWithObject(_currentActionObject);
             }
             else
             {
-                // Если объект не найден, выполняем RoleAction
-                PerformRoleActionWithoutObject();
+                // Выполняем RoleAction если нет подходящего объекта
+                PerformRoleAction();
             }
         }
 
         private void StartActionWithObject(ActionObject actionObject)
         {
-            Debug.Log($"[ActionState] Начинаем действие с объектом: {actionObject.name}");
+            Debug.Log($"[AiActionState] Начинаем действие с объектом: {actionObject.name}");
 
             _actionCancellationToken = new CancellationTokenSource();
             actionObject.StartAction(_characterView);
@@ -153,45 +138,38 @@ namespace Codebase.Controllers.Fsm.States
             {
                 // Действие было прервано
                 actionObject.InterruptAction(_characterView);
-                Debug.Log($"[ActionState] Действие с {actionObject.name} было прервано");
+                Debug.Log($"[AiActionState] Действие с {actionObject.name} было прервано");
             }
         }
 
-        private void PerformRoleActionWithoutObject()
+        private void PerformRoleAction()
         {
-            // Выполняем RoleAction если есть
+            // Выполняем специальное действие роли
             if (_characterView.Character.HasRoleAction)
             {
-                Debug.Log($"[ActionState] Выполняем RoleAction для {_characterView.Character.Role}");
+                Debug.Log($"[AiActionState] Выполняем RoleAction для {_characterView.Character.Role}");
                 _characterView.Character.ExecuteRoleAction();
             }
             else
             {
-                // Старая логика для случаев без RoleAction
-                switch (_characterView.Character.Role)
-                {
-                    case Role.Mafia:
-                        Debug.Log($"[ActionState] Mafia выполняет общее злодейское действие!");
-                        break;
-
-                    case Role.Police:
-                        Debug.Log($"[ActionState] Police выполняет общее исследовательское действие!");
-                        break;
-
-                    case Role.Civilian:
-                        Debug.Log($"[ActionState] Civilian выполняет общее мирное действие!");
-                        break;
-
-                    default:
-                        Debug.Log($"[ActionState] Unknown role performing action!");
-                        break;
-                }
+                Debug.Log($"[AiActionState] Общее действие для {_characterView.Character.Role}");
             }
 
             // Простое ожидание для действий без объектов
-            float defaultDuration = 1f;
+            float defaultDuration = GetDefaultActionDuration();
             _actionCancellationToken = new CancellationTokenSource();
             WaitAndComplete(defaultDuration, _actionCancellationToken.Token).Forget();
+        }
+
+        private float GetDefaultActionDuration()
+        {
+            return _characterView.Character.Role switch
+            {
+                Role.Mafia => 2f,
+                Role.Police => 1.5f,
+                Role.Civilian => 1f,
+                _ => 1f
+            };
         }
 
         private async UniTaskVoid WaitAndComplete(float duration, CancellationToken cancellationToken)
@@ -210,14 +188,18 @@ namespace Codebase.Controllers.Fsm.States
             }
             catch (System.OperationCanceledException)
             {
-                Debug.Log($"[ActionState] Общее действие было прервано");
+                Debug.Log($"[AiActionState] RoleAction было прервано");
             }
         }
 
         private void OnActionCompleted()
         {
-            Debug.Log($"[ActionState] Действие завершено для {_characterView.Character.Role}");
-            _stateSwitcher.Switch<IdleState>();
+            Debug.Log($"[AiActionState] Действие завершено для {_characterView.Character.Role}");
+            
+            // Очищаем цель после выполнения действия
+            ClearCurrentTarget();
+            
+            _stateSwitcher.Switch<AiIdleState>();
         }
 
         private void InterruptCurrentAction()
@@ -232,11 +214,32 @@ namespace Codebase.Controllers.Fsm.States
             _currentActionObject = null;
         }
 
-        // Метод для принудительного прерывания действия (например, от GameplayManager)
+        private void ClearCurrentTarget()
+        {
+            // Сообщаем другим состояниям, что цель больше не актуальна
+            if (_stateSwitcher is FsmBase fsm)
+            {
+                var idleState = fsm.GetState<AiIdleState>();
+                if (idleState != null)
+                {
+                    idleState.SetTarget(null);
+                }
+
+                var moveState = fsm.GetState<AiMoveState>();
+                if (moveState != null)
+                {
+                    moveState.SetTarget(null);
+                }
+            }
+        }
+
+        // Метод для принудительного прерывания действия
         public void ForceInterrupt()
         {
             InterruptCurrentAction();
-            _stateSwitcher.Switch<IdleState>();
+            _stateSwitcher.Switch<AiIdleState>();
         }
+
+        public ActionObject GetCurrentActionObject() => _currentActionObject;
     }
-}
+} 

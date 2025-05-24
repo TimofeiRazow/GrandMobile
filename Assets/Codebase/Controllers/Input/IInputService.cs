@@ -11,5 +11,6 @@ namespace Codebase.Controllers.Input
         bool IsSprintPressed();
         bool IsJumpPressed();
         bool IsCrouchPressed();
+        void Disable();
     }
 }

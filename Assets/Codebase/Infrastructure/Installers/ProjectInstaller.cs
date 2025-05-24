@@ -17,11 +17,20 @@ namespace Codebase.Infrastructure.Installers
         {
             Container.Bind<StaticData>().FromInstance(_staticData).AsSingle();
             Container.Bind<SceneService>().AsSingle();
+            
+            // Основные игровые сервисы
+            Container.Bind<ActionObjectProvider>().AsSingle();
+            Container.Bind<GamePhaseService>().AsSingle();
+            Container.Bind<CharacterLifecycleService>().AsSingle();
+            Container.Bind<TaskProgressService>().AsSingle();
+            Container.Bind<GameWinConditionService>().AsSingle();
 
+            // Основной игровой цикл и фабрики
             Container.Bind<CoreLoop>().AsTransient();
             Container.Bind<CharacterViewFactory>().AsSingle();
             Container.Bind<CameraService>().AsSingle();
             
+            // Сервисы ввода
             Container.Bind<PlayerInputService>().AsTransient();
             Container.Bind<AiInputService>().AsTransient();
         }

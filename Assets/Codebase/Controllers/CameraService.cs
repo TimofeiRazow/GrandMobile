@@ -24,6 +24,8 @@ namespace Codebase.Controllers
             _camera.Follow = target;
         }
 
+        public CinemachineCamera GetCurrentCamera() => _camera;
+
         public void Unbind() =>
             _camera = null;
     }

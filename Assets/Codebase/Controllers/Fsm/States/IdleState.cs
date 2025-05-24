@@ -34,7 +34,6 @@ namespace Codebase.Controllers.Fsm.States
         {
             Debug.Log($"[IdleState] Entering for {_characterView.Character.Role}");
 
-            // Устанавливаем параметры аниматора для состояния покоя
             if (_characterView.Animator != null)
             {
                 _characterView.Animator.SetFloat(Speed, 0f);
@@ -51,7 +50,19 @@ namespace Codebase.Controllers.Fsm.States
         public void Update(float deltaTime)
         {
             HandleMouseLook(deltaTime);
-            HandleGravity(deltaTime);
+            
+            // Гравитация только для CharacterController
+            if (_characterView.CharacterController != null && _characterView.CharacterController.enabled)
+            {
+                HandleGravity(deltaTime);
+            }
+            
+            // Обновляем аниматор для NavMeshAgent
+            if (_characterView.NavMeshAgent != null && _characterView.NavMeshAgent.enabled)
+            {
+                UpdateNavMeshAnimator();
+            }
+            
             CheckStateTransitions();
         }
 
@@ -90,11 +101,28 @@ namespace Codebase.Controllers.Fsm.States
                 _characterView.Animator.SetBool(IsGrounded, _characterView.CharacterController.isGrounded);
         }
 
+        private void UpdateNavMeshAnimator()
+        {
+            if (_characterView.Animator != null)
+            {
+                float currentSpeed = _characterView.GetMovementSpeed();
+                float normalizedSpeed = currentSpeed / 5f;
+                
+                _characterView.Animator.SetFloat(Speed, normalizedSpeed);
+                _characterView.Animator.SetBool(IsMoving, currentSpeed > 0.1f);
+                _characterView.Animator.SetBool(IsGrounded, _characterView.IsGrounded());
+            }
+        }
+
         private void CheckStateTransitions()
         {
             Vector2 inputVector = _characterView.InputService.GetMovementInput();
 
-            if (inputVector.magnitude > 0.1f)
+            // Для NavMeshAgent также проверяем фактическое движение
+            bool hasMovementInput = inputVector.magnitude > 0.1f;
+            bool isActuallyMoving = _characterView.GetMovementSpeed() > 0.1f;
+
+            if (hasMovementInput || isActuallyMoving)
             {
                 _stateSwitcher.Switch<MoveState>();
                 return;
