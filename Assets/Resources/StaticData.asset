@@ -16,6 +16,4 @@ MonoBehaviour:
   <MenuSceneName>k__BackingField: Menu
   <GameplaySceneName>k__BackingField: Gameplay
   <CharacterViews>k__BackingField:
-  - {fileID: 902697831297452217, guid: a7718fd089fdacd4497e7bfe39f28247, type: 3}
-  - {fileID: 902697831297452217, guid: 54ae5d91c3ebda34ca84b4e98deeb925, type: 3}
-  - {fileID: 902697831297452217, guid: fd47e0b84453eaf45ad63c6eb6206880, type: 3}
+  - {fileID: 7819017378787297439, guid: ac27773c19cdcab4082e9290db3b94dc, type: 3}

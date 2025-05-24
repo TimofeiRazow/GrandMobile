@@ -1080,10 +1080,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Damping: {x: 0.1, y: 0.5, z: 0.3}
-  ShoulderOffset: {x: 1.09, y: -0.39, z: 1.12}
-  VerticalArmLength: 1.03
-  CameraSide: 0.902
-  CameraDistance: 5.18
+  ShoulderOffset: {x: 1.09, y: 0.09, z: 1.12}
+  VerticalArmLength: 1.48
+  CameraSide: 0.693
+  CameraDistance: 4.1
   AvoidObstacles:
     Enabled: 1
     CollisionFilter:

@@ -1,6 +1,4 @@
-﻿using System;
-using Codebase.Controllers;
-using Codebase.Controllers.Fsm;
+﻿using Codebase.Controllers.Fsm;
 using Codebase.Controllers.Input;
 using Codebase.Domain.Gameplay;
 using TMPro;
@@ -13,7 +11,7 @@ namespace Codebase.Views.Gameplay
         [SerializeField] private Animator _animator;
         [SerializeField] private AudioSource _audioSource;
         [SerializeField] private TMP_Text _uiBar;
-        [SerializeField] private MeshRenderer _body;
+        [SerializeField] private Renderer _body;
 
         private Character _character;
         private IInputService _inputService;
