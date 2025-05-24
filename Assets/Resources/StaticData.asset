@@ -15,3 +15,7 @@ MonoBehaviour:
   <BootstrapSceneName>k__BackingField: Bootstrap
   <MenuSceneName>k__BackingField: Menu
   <GameplaySceneName>k__BackingField: Gameplay
+  <CharacterViews>k__BackingField:
+  - {fileID: 902697831297452217, guid: a7718fd089fdacd4497e7bfe39f28247, type: 3}
+  - {fileID: 902697831297452217, guid: 54ae5d91c3ebda34ca84b4e98deeb925, type: 3}
+  - {fileID: 902697831297452217, guid: fd47e0b84453eaf45ad63c6eb6206880, type: 3}

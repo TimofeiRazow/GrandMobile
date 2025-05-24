@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using Codebase.Views.Gameplay;
+using UnityEngine;
 
 namespace Codebase.Configs
 {
@@ -10,5 +12,6 @@ namespace Codebase.Configs
         [field: SerializeField] public string MenuSceneName { get; set; }
         
         [field: SerializeField] public string GameplaySceneName { get; set; }
+        [field: SerializeField] public List<CharacterView> CharacterViews { get; set; }
     }
 }
