@@ -1,6 +1,5 @@
 ﻿using Codebase.Configs;
 using Codebase.Controllers;
-using Codebase.Controllers.Fsm.States;
 using Codebase.Controllers.Input;
 using Codebase.Infrastructure.Factories;
 using Codebase.Infrastructure.Services;
@@ -25,11 +24,6 @@ namespace Codebase.Infrastructure.Installers
             
             Container.Bind<PlayerInputService>().AsTransient();
             Container.Bind<AiInputService>().AsTransient();
-            
-            Container.Bind<IdleState>().AsTransient();
-            Container.Bind<MoveState>().AsTransient();
-            Container.Bind<ActionState>().AsTransient();
-            Container.Bind<DeathState>().AsTransient();
         }
     }
 }

@@ -31,13 +31,8 @@ namespace Codebase.Infrastructure.Factories
 
             var model = new Character { Role = role };
             var input = _diContainer.Resolve<PlayerInputService>();
-            var fsm = new PlayerFsm(new List<IState>()
-            {
-                _diContainer.Resolve<IdleState>(),
-                _diContainer.Resolve<MoveState>(),
-                _diContainer.Resolve<ActionState>(),
-                _diContainer.Resolve<DeathState>(),
-            });
+
+            var fsm = new PlayerFsm(CreateStates(characterView));
 
             characterView.Initialize(model, input, fsm);
 
@@ -51,17 +46,25 @@ namespace Codebase.Infrastructure.Factories
 
             var model = new Character { Role = role };
             var input = _diContainer.Resolve<AiInputService>();
-            var fsm = new BotFsm(new List<IState>()
-            {
-                _diContainer.Resolve<IdleState>(),
-                _diContainer.Resolve<MoveState>(),
-                _diContainer.Resolve<ActionState>(),
-                _diContainer.Resolve<DeathState>(),
-            });
+
+            input.Initialize(model, characterView.transform);
+
+            var fsm = new BotFsm(CreateStates(characterView));
 
             characterView.Initialize(model, input, fsm);
 
             return characterView;
+        }
+
+        private List<IState> CreateStates(CharacterView characterView)
+        {
+            return new List<IState>()
+            {
+                new IdleState(characterView),
+                new MoveState(characterView),
+                new ActionState(characterView),
+                new DeathState(characterView),
+            };
         }
     }
 }

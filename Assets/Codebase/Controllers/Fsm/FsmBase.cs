@@ -29,6 +29,18 @@ namespace Codebase.Controllers.Fsm
             _currentState.Enter();
         }
 
+        public void Switch<T>() where T : class, IState
+        {
+            var state = _states.OfType<T>().FirstOrDefault();
+
+            if (state == null || _states.Contains(state) == false)
+                throw new Exception(nameof(state));
+
+            _currentState?.Exit();
+            _currentState = state;
+            _currentState.Enter();
+        }
+
         public void Update(float deltaTime) =>
             _currentState?.Update(deltaTime);
 

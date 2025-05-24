@@ -4,6 +4,7 @@ namespace Codebase.Controllers.Fsm
 {
     public interface IStateSwitcher
     {
-        public void Switch(IState state);
+        void Switch(IState state);
+        void Switch<T>() where T : class, IState;
     }
 }

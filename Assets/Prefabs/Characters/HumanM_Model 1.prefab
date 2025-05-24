@@ -979,6 +979,7 @@ GameObject:
   - component: {fileID: 8057261350518923408}
   - component: {fileID: 3622627117153075315}
   - component: {fileID: 7819017378787297439}
+  - component: {fileID: 7656912410117685639}
   m_Layer: 0
   m_Name: HumanM_Model 1
   m_TagString: Untagged
@@ -1041,6 +1042,32 @@ MonoBehaviour:
   _audioSource: {fileID: 0}
   _uiBar: {fileID: 0}
   _body: {fileID: 9162151216048791812}
+  _characterController: {fileID: 7656912410117685639}
+--- !u!143 &7656912410117685639
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4308740013517919990}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.28
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0.93, z: 0}
 --- !u!1 &4522113682050446101
 GameObject:
   m_ObjectHideFlags: 0

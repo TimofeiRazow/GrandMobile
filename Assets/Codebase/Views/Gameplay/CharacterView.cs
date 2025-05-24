@@ -12,10 +12,20 @@ namespace Codebase.Views.Gameplay
         [SerializeField] private AudioSource _audioSource;
         [SerializeField] private TMP_Text _uiBar;
         [SerializeField] private Renderer _body;
+        [SerializeField] private CharacterController _characterController;
 
         private Character _character;
         private IInputService _inputService;
         private FsmBase _fsm;
+
+        public Transform Transform => transform;
+        public Animator Animator => _animator;
+        public AudioSource AudioSource => _audioSource;
+        public TMP_Text UiBar => _uiBar;
+        public Renderer Body => _body;
+        public Character Character => _character;
+        public IInputService InputService => _inputService;
+        public CharacterController CharacterController => _characterController;
 
         public void Initialize(Character character, IInputService inputService, FsmBase fsm)
         {
@@ -28,6 +38,9 @@ namespace Codebase.Views.Gameplay
 
         private void Update()
         {
+            if (_inputService is AiInputService aiService) 
+                aiService.Update(Time.deltaTime);
+            
             _fsm.Update(Time.deltaTime);
         }
     }
